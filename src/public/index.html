@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Gateway</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --border: #2a2a2a;
+      --text: #e5e5e5;
+      --text-dim: #888;
+      --accent: #3b82f6;
+      --user-bg: #1a1a2e;
+      --ai-bg: #1a1a1a;
+      --green: #22c55e;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 span { font-size: 20px; }
+
+    .status {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 14px 18px;
+      border-radius: 12px;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message.user {
+      background: var(--user-bg);
+      border: 1px solid #2a2a4a;
+    }
+
+    .message.assistant {
+      background: var(--ai-bg);
+      border: 1px solid var(--border);
+    }
+
+    .meta {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .meta span { display: flex; align-items: center; gap: 4px; }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    #input-area {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    #input-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+    }
+
+    #input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    #input:focus { border-color: var(--accent); }
+    #input::placeholder { color: var(--text-dim); }
+
+    #send {
+      padding: 0 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    #send:hover { opacity: 0.85; }
+    #send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .typing {
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    @media (max-width: 600px) {
+      #messages { padding: 16px; }
+      #input-area { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>🐸</span> LLM Gateway</h1>
+    <div class="status"><div class="status-dot"></div> Online</div>
+  </header>
+
+  <div id="messages">
+    <div class="empty-state">Send a message to start</div>
+  </div>
+
+  <div id="input-area">
+    <div id="input-wrap">
+      <textarea id="input" rows="1" placeholder="Type a message..." autofocus></textarea>
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const messages = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const history = [];
+
+    function addMessage(role, content, meta) {
+      const empty = messages.querySelector('.empty-state');
+      if (empty) empty.remove();
+
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+      div.textContent = content;
+
+      if (meta) {
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'meta';
+        metaDiv.innerHTML = `
+          <span>provider: ${meta.provider}</span>
+          <span>tokens: ${meta.inputTokens} in / ${meta.outputTokens} out</span>
+          <span>latency: ${meta.latencyMs}ms</span>
+          <span>cost: $${meta.costUsd.toFixed(4)}</span>
+        `;
+        div.appendChild(metaDiv);
+      }
+
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    async function send() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      input.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      addMessage('user', text);
+      history.push({ role: 'user', content: text });
+
+      const typing = document.createElement('div');
+      typing.className = 'message assistant typing';
+      typing.textContent = 'Thinking...';
+      messages.appendChild(typing);
+      messages.scrollTop = messages.scrollHeight;
+
+      try {
+        const res = await fetch('/v1/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer playground',
+          },
+          body: JSON.stringify({ messages: history }),
+        });
+
+        typing.remove();
+
+        if (!res.ok) {
+          const err = await res.json();
+          addMessage('assistant', `Error: ${err.error}`);
+          return;
+        }
+
+        const data = await res.json();
+        history.push({ role: 'assistant', content: data.content });
+        addMessage('assistant', data.content, data);
+      } catch (e) {
+        typing.remove();
+        addMessage('assistant', `Network error: ${e.message}`);
+      } finally {
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    sendBtn.addEventListener('click', send);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    });
+  </script>
+</body>
+</html>

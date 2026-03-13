@@ -11,32 +11,18 @@ A proxy server between your application and LLM providers. Single entry point fo
 
 ## How It Works
 
+![Playground](docs/playground.png)
+
 ```
-                    ┌─────────────────────────────────-┐
-                    │          LLM Gateway             │
-                    │                                  │
-  POST /v1/chat ──▶ │  Auth ──▶ Rate Limiter ──▶ Router│
-                    │                              │   │
-                    │              ┌───────────────┘   │
-                    │              ▼                   │
-                    │     ┌── Gemini (primary)         │
-                    │     │        ▼ fail              │
-                    │     ├── OpenAI (fallback)        │
-                    │     │        ▼ fail              │
-                    │     └── Anthropic (fallback)     │
-                    │              │                   │
-                    │              ▼                   │
-                    │   Cost Meter ──▶ SQLite          │
-                    │   Tracer ──▶ Structured Logs     │
-                    └─────────────────────────────────-┘
+Request ──▶ Auth ──▶ Rate Limiter ──▶ Gemini → OpenAI → Anthropic ──▶ Response
+                                          ↕              ↕
+                                   Circuit Breaker   Cost Meter ──▶ SQLite
 ```
 
-1. Your app sends a request to `localhost:3000/v1/chat`
-2. Gateway routes it to **Gemini** (primary provider)
-3. Gemini is down? Automatic **fallback to OpenAI**
-4. OpenAI is down too? Falls back to **Anthropic**
-5. All providers down? **Circuit breaker** kicks in, graceful error response
-6. Every request is tracked: tokens, cost in dollars, logs per API key
+1. `POST /v1/chat` with `Authorization: Bearer <key>`
+2. **Auth** validates key, **Rate Limiter** checks limits (req/min, tokens/day, $/day)
+3. **Fallback chain**: Gemini → OpenAI → Anthropic, skipping providers with open circuit breakers
+4. Every request is tracked: tokens, cost, latency — stored in SQLite per API key
 
 ## Architecture
 
@@ -78,7 +64,11 @@ npm install
 npm run dev
 ```
 
-## Usage Example
+## Playground
+
+Built-in chat UI at `http://localhost:3000` — send messages and see responses with live metadata (provider, tokens, latency, cost).
+
+## API Usage
 
 ```bash
 curl -X POST http://localhost:3000/v1/chat \
@@ -120,6 +110,8 @@ src/
 ├── index.ts             # entry point
 ├── router.ts            # request routing + provider config
 ├── types.ts             # shared types + Zod schemas
+├── public/
+│   └── index.html       # chat playground UI
 ├── core/
 │   ├── circuit-breaker.ts   # per-provider circuit breaker
 │   ├── fallback.ts          # fallback chain logic
