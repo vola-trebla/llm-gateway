@@ -1,17 +1,34 @@
 # LLM Gateway
 
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Hono](https://img.shields.io/badge/Hono-E36002?logo=hono&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)
+![CI](https://github.com/vola-trebla/llm-gateway/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/License-ISC-blue)
+
 A proxy server between your application and LLM providers. Single entry point for all AI requests with built-in reliability and cost control.
 
 ## How It Works
 
 ```
-Your App → localhost:3000/v1/chat → Gateway → Gemini (primary)
-                                            ↓ (down?)
-                                          OpenAI (fallback #1)
-                                            ↓ (also down?)
-                                          Anthropic (fallback #2)
-                                            ↓ (all down?)
-                                     Circuit breaker → graceful error
+                    ┌─────────────────────────────────-┐
+                    │          LLM Gateway             │
+                    │                                  │
+  POST /v1/chat ──▶ │  Auth ──▶ Rate Limiter ──▶ Router│
+                    │                              │   │
+                    │              ┌───────────────┘   │
+                    │              ▼                   │
+                    │     ┌── Gemini (primary)         │
+                    │     │        ▼ fail              │
+                    │     ├── OpenAI (fallback)        │
+                    │     │        ▼ fail              │
+                    │     └── Anthropic (fallback)     │
+                    │              │                   │
+                    │              ▼                   │
+                    │   Cost Meter ──▶ SQLite          │
+                    │   Tracer ──▶ Structured Logs     │
+                    └─────────────────────────────────-┘
 ```
 
 1. Your app sends a request to `localhost:3000/v1/chat`
@@ -88,6 +105,14 @@ Response:
 
 Every response includes provider used, token counts, latency, and cost — all tracked in SQLite per API key.
 
+## Testing
+
+```bash
+npm test
+```
+
+Unit tests cover all core modules: circuit breaker, fallback chain, cost meter, rate limiter, tracer, and Zod schema validation. CI runs type checks and tests on every PR.
+
 ## Project Structure
 
 ```
@@ -112,4 +137,11 @@ src/
     ├── gemini.ts        # Gemini provider
     ├── openai.ts        # OpenAI provider
     └── anthropic.ts     # Anthropic provider
+tests/
+├── circuit-breaker.test.ts
+├── cost-meter.test.ts
+├── fallback.test.ts
+├── rate-limiter.test.ts
+├── schema.test.ts
+└── tracer.test.ts
 ```
