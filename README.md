@@ -11,7 +11,7 @@ A proxy server between your application and LLM providers. Single entry point fo
 
 ## How It Works
 
-![Playground](docs/playground.png)
+<img src="docs/playground.png" alt="Playground" width="600">
 
 ```
 Request ──▶ Auth ──▶ Rate Limiter ──▶ Gemini → OpenAI → Anthropic ──▶ Response
