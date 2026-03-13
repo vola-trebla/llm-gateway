@@ -1,9 +1,9 @@
 import { isAvailable, recordSuccess, recordFailure } from './circuit-breaker.js';
-import type { LLMProvider, ProviderResponse } from './providers/gemini.js';
-import type { ChatMessage } from './types.js';
+import { BaseProvider, type ProviderResponse } from '../providers/base.js';
+import type { ChatMessage } from '../types.js';
 
 export async function callWithFallback(
-  providers: LLMProvider[],
+  providers: BaseProvider[],
   messages: ChatMessage[]
 ): Promise<{ response: ProviderResponse; provider: string }> {
   const available = providers.filter(p => isAvailable(p.name));

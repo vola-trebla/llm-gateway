@@ -1,7 +1,13 @@
 import { z } from 'zod';
 
+export type AppEnv = {
+  Variables: {
+    apiKey: string;
+  };
+};
+
 export interface ProviderConfig {
-  name: 'gemini' | 'anthropic';
+  name: string;
   apiKey: string;
   model: string;
   costPer1kInputTokens: number;
@@ -15,7 +21,6 @@ export interface ChatMessage {
 
 export interface ChatRequest {
   messages: ChatMessage[];
-  apiKey: string;
   projectId?: string;
 }
 
@@ -42,6 +47,5 @@ export const ChatRequestSchema = z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
   })),
-  apiKey: z.string(),
   projectId: z.string().optional(),
 });
