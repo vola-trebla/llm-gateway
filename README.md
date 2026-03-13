@@ -11,13 +11,30 @@ A proxy server between your application and LLM providers. Single entry point fo
 
 ## How It Works
 
-<img src="docs/playground.png" alt="Playground" width="600">
+<table>
+<tr>
+<td width="45%">
+<img src="docs/playground.png" alt="Playground" width="100%">
+</td>
+<td width="55%">
 
+```mermaid
+flowchart TD
+    A[POST /v1/chat] --> B[Auth Middleware]
+    B --> C[Rate Limiter]
+    C --> D{Fallback Chain}
+    D --> E[Gemini]
+    D --> F[OpenAI]
+    D --> G[Anthropic]
+    E & F & G --> H[Circuit Breaker]
+    H --> I[Cost Meter]
+    I --> J[(SQLite)]
+    I --> K[JSON Response]
 ```
-Request ──▶ Auth ──▶ Rate Limiter ──▶ Gemini → OpenAI → Anthropic ──▶ Response
-                                          ↕              ↕
-                                   Circuit Breaker   Cost Meter ──▶ SQLite
-```
+
+</td>
+</tr>
+</table>
 
 1. `POST /v1/chat` with `Authorization: Bearer <key>`
 2. **Auth** validates key, **Rate Limiter** checks limits (req/min, tokens/day, $/day)
