@@ -20,16 +20,16 @@ A proxy server between your application and LLM providers. Single entry point fo
 
 ```mermaid
 flowchart TD
-    A[POST /v1/chat] --> B[Auth Middleware]
-    B --> C[Rate Limiter]
-    C --> D{Fallback Chain}
-    D --> E[Gemini]
-    D --> F[OpenAI]
-    D --> G[Anthropic]
-    E & F & G --> H[Circuit Breaker]
-    H --> I[Cost Meter]
-    I --> J[(SQLite)]
-    I --> K[JSON Response]
+    A["POST /v1/chat"] --> B["Auth"]
+    B --> C["Rate Limiter"]
+    C --> D["Gemini ①"]
+    D -- "✓ ok" --> R["Cost Meter → SQLite"]
+    D -- "✗ fail" --> E["OpenAI ②"]
+    E -- "✓ ok" --> R
+    E -- "✗ fail" --> F["Anthropic ③"]
+    F -- "✓ ok" --> R
+    F -- "✗ fail" --> X["503 Error"]
+    R --> K["JSON Response"]
 ```
 
 </td>
