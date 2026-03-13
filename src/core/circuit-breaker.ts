@@ -18,6 +18,7 @@ function getState(provider: string): CircuitBreakerState {
   return states.get(provider)!;
 }
 
+/** Check if a provider's circuit breaker allows requests through. */
 export function isAvailable(provider: string): boolean {
   const s = getState(provider);
 
@@ -35,12 +36,14 @@ export function isAvailable(provider: string): boolean {
   return true;
 }
 
+/** Reset breaker to closed state after a successful call. */
 export function recordSuccess(provider: string): void {
   const s = getState(provider);
   s.state = 'closed';
   s.failures = 0;
 }
 
+/** Increment failure count. Opens the breaker after {@link FAILURE_THRESHOLD} consecutive failures. */
 export function recordFailure(provider: string): void {
   const s = getState(provider);
   s.failures++;

@@ -34,6 +34,7 @@ function resetIfNewDay(state: RateLimitState): void {
   }
 }
 
+/** Check if a request is allowed under the key's rate limits (req/min, tokens/day, $/day). */
 export function checkLimit(apiKey: string): { allowed: boolean; reason?: string } {
   const state = getState(apiKey);
   resetIfNewDay(state);
@@ -56,6 +57,7 @@ export function checkLimit(apiKey: string): { allowed: boolean; reason?: string 
   return { allowed: true };
 }
 
+/** Track a completed request's usage against the key's daily limits. */
 export function recordUsage(apiKey: string, tokens: number, costUsd: number): void {
   const state = getState(apiKey);
   state.requests.push(Date.now());

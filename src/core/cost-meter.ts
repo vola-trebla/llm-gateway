@@ -1,6 +1,7 @@
 import { getDb } from '../db/client.js';
 import type { ProviderConfig, ChatResponse } from '../types.js';
 
+/** Calculate request cost in USD based on provider's per-1k-token pricing. */
 export function calculateCost(
   config: ProviderConfig,
   inputTokens: number,
@@ -11,6 +12,7 @@ export function calculateCost(
   return parseFloat((inputCost + outputCost).toFixed(6));
 }
 
+/** Persist a completed request to SQLite for cost tracking and analytics. */
 export function recordRequest(response: ChatResponse, apiKey: string, projectId?: string): void {
   const db = getDb();
 
@@ -30,6 +32,7 @@ export function recordRequest(response: ChatResponse, apiKey: string, projectId?
   );
 }
 
+/** Aggregate usage stats (requests, tokens, cost, latency) per provider for a given API key. */
 export function getSummary(apiKey: string) {
   const db = getDb();
 
