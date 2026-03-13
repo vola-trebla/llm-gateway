@@ -1,5 +1,12 @@
 # LLM Gateway
 
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Hono](https://img.shields.io/badge/Hono-E36002?logo=hono&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)
+![CI](https://github.com/vola-trebla/llm-gateway/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/License-ISC-blue)
+
 A proxy server between your application and LLM providers. Single entry point for all AI requests with built-in reliability and cost control.
 
 ## How It Works
@@ -8,20 +15,20 @@ A proxy server between your application and LLM providers. Single entry point fo
                     ┌─────────────────────────────────-┐
                     │          LLM Gateway             │
                     │                                  │
-  POST /v1/chat ──▶ │  Auth ──▶ Rate Limiter ──▶ Router │
+  POST /v1/chat ──▶ │  Auth ──▶ Rate Limiter ──▶ Router│
                     │                              │   │
-                    │              ┌────────────────┘   │
-                    │              ▼                    │
-                    │     ┌── Gemini (primary)          │
-                    │     │        ▼ fail               │
-                    │     ├── OpenAI (fallback)         │
-                    │     │        ▼ fail               │
-                    │     └── Anthropic (fallback)      │
-                    │              │                    │
-                    │              ▼                    │
-                    │   Cost Meter ──▶ SQLite           │
-                    │   Tracer ──▶ Structured Logs      │
-                    └─────────────────────────────────┘
+                    │              ┌───────────────┘   │
+                    │              ▼                   │
+                    │     ┌── Gemini (primary)         │
+                    │     │        ▼ fail              │
+                    │     ├── OpenAI (fallback)        │
+                    │     │        ▼ fail              │
+                    │     └── Anthropic (fallback)     │
+                    │              │                   │
+                    │              ▼                   │
+                    │   Cost Meter ──▶ SQLite          │
+                    │   Tracer ──▶ Structured Logs     │
+                    └─────────────────────────────────-┘
 ```
 
 1. Your app sends a request to `localhost:3000/v1/chat`
