@@ -2,6 +2,10 @@ import { isAvailable, recordSuccess, recordFailure } from './circuit-breaker.js'
 import { BaseProvider, type ProviderResponse } from '../providers/base.js';
 import type { ChatMessage } from '../types.js';
 
+/**
+ * Try providers in order, skipping those with open circuit breakers.
+ * Returns the first successful response or throws if all fail.
+ */
 export async function callWithFallback(
   providers: BaseProvider[],
   messages: ChatMessage[]
