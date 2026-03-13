@@ -1,4 +1,4 @@
-import type { CircuitBreakerState } from './types.js';
+import type { CircuitBreakerState } from '../types.js';
 
 const FAILURE_THRESHOLD = 5;
 const COOLDOWN_MS = 30_000;

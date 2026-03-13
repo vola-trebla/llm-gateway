@@ -1,5 +1,5 @@
-import { getDb } from './db/client.js';
-import type { ProviderConfig, ChatResponse } from './types.js';
+import { getDb } from '../db/client.js';
+import type { ProviderConfig, ChatResponse } from '../types.js';
 
 export function calculateCost(
   config: ProviderConfig,
