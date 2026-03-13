@@ -71,11 +71,13 @@ npm install
 npm run dev
 ```
 
+Open `http://localhost:3000` for the **chat playground**, or use the API directly:
+
 ## Playground
 
-Built-in chat UI at `http://localhost:3000` — send messages and see responses with live metadata (provider, tokens, latency, cost).
+Built-in chat UI with dark theme. Send messages, see LLM responses with live metadata — which provider handled the request, token counts, latency, and cost. Conversation history is maintained within the session.
 
-## API Usage
+## API
 
 ```bash
 curl -X POST http://localhost:3000/v1/chat \
