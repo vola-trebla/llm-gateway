@@ -19,7 +19,7 @@ export async function callWithFallback(
       return { response, provider: provider.name };
     } catch (err) {
       recordFailure(provider.name);
-      console.warn(`Provider ${provider.name} failed, trying next...`);
+      console.warn(`Provider ${provider.name} failed:`, err);
     }
   }
 
