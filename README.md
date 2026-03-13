@@ -13,26 +13,16 @@ A proxy server between your application and LLM providers. Single entry point fo
 
 <table>
 <tr>
-<td width="45%">
-<img src="docs/playground.png" alt="Playground" width="100%">
+<td width="50%">
+<img src="docs/playground.png" alt="Playground">
 </td>
-<td width="55%">
-
-```mermaid
-flowchart TD
-    A["POST /v1/chat"] --> B["Auth"]
-    B --> C["Rate Limiter"]
-    C --> D["Gemini ①"]
-    D -- "✓ ok" --> R["Cost Meter → SQLite"]
-    D -- "✗ fail" --> E["OpenAI ②"]
-    E -- "✓ ok" --> R
-    E -- "✗ fail" --> F["Anthropic ③"]
-    F -- "✓ ok" --> R
-    F -- "✗ fail" --> X["503 Error"]
-    R --> K["JSON Response"]
-```
-
+<td width="50%">
+<img src="docs/architecture.png" alt="Architecture">
 </td>
+</tr>
+<tr>
+<td align="center"><sub>Built-in chat playground</sub></td>
+<td align="center"><sub>Request flow & fallback chain</sub></td>
 </tr>
 </table>
 
