@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { auth } from './middleware/auth.js';
@@ -8,10 +11,15 @@ import { initSchema } from './db/schema.js';
 
 initSchema();
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const indexHtml = readFileSync(join(__dirname, 'public', 'index.html'), 'utf-8');
+
 const app = new Hono();
 app.use('*', logger);
 app.use('/v1/*', auth);
 app.route('/', router);
+
+app.get('/', (c) => c.html(indexHtml));
 
 serve({ fetch: app.fetch, port: 3000 }, () => {
   console.log('🐸 LLM Gateway running on http://localhost:3000');
