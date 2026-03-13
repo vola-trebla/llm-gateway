@@ -2,12 +2,12 @@ flowchart TD
     A["🔒 POST /v1/chat"] --> B["Auth Middleware"]
     B --> C["Rate Limiter"]
     C --> D["Gemini ①"]
-    D -- "✓ ok" --> R["💰 Cost Meter → SQLite"]
-    D -- "✗ fail" --> E["OpenAI ②"]
-    E -- "✓ ok" --> R
-    E -- "✗ fail" --> F["Anthropic ③"]
-    F -- "✓ ok" --> R
-    F -- "✗ fail" --> X["🚫 503 All providers failed"]
+    D --> R["💰 Cost Meter → SQLite"]
+    D --> E["OpenAI ②"]
+    E --> R
+    E --> F["Anthropic ③"]
+    F --> R
+    F --> X["🚫 503 All providers failed"]
     R --> K["📦 JSON Response"]
 
     style A fill:#3b82f6,stroke:#2563eb,color:#fff
@@ -19,3 +19,11 @@ flowchart TD
     style R fill:#06b6d4,stroke:#0891b2,color:#fff
     style K fill:#22c55e,stroke:#16a34a,color:#fff
     style X fill:#ef4444,stroke:#dc2626,color:#fff
+
+    linkStyle 3 stroke:#22c55e,stroke-width:2px
+    linkStyle 4 stroke:#ef4444,stroke-width:2px
+    linkStyle 5 stroke:#22c55e,stroke-width:2px
+    linkStyle 6 stroke:#ef4444,stroke-width:2px
+    linkStyle 7 stroke:#22c55e,stroke-width:2px
+    linkStyle 8 stroke:#ef4444,stroke-width:2px
+    linkStyle 9 stroke:#22c55e,stroke-width:2px
