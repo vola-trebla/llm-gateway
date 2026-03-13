@@ -14,8 +14,8 @@ Your App → localhost:3000/v1/chat → Gateway → Gemini (primary)
 
 1. Your app sends a request to `localhost:3000/v1/chat`
 2. Gateway routes it to **Gemini** (primary provider)
-3. Gemini is down? Automatic **fallback to OpenAI**
-4. OpenAI is down too? **Circuit breaker** kicks in, graceful error response
+3. Gemini is down? Automatic **fallback to Anthropic**
+4. Anthropic is down too? **Circuit breaker** kicks in, graceful error response
 5. Every request is tracked: tokens, cost in dollars, logs per API key
 
 ## Core Modules
@@ -23,7 +23,7 @@ Your App → localhost:3000/v1/chat → Gateway → Gemini (primary)
 | Module | Description |
 |---|---|
 | **Proxy Router** | Hono server with a unified `/v1/chat` endpoint, routes requests to providers |
-| **Fallback Chain** | Gemini → OpenAI → error. Configurable provider order |
+| **Fallback Chain** | Gemini → Anthropic → error. Configurable provider order |
 | **Circuit Breaker** | Per-provider: 5 failures → open → cooldown → half-open |
 | **Cost Meter** | Token + dollar tracking per API key / project, stored in SQLite |
 | **Rate Limiter** | Per-key limits: requests/min, tokens/day, $/day |
@@ -31,7 +31,7 @@ Your App → localhost:3000/v1/chat → Gateway → Gemini (primary)
 
 ## Tech Stack
 
-TypeScript, Hono, SQLite (better-sqlite3), Gemini API, OpenAI API
+TypeScript, Hono, SQLite (better-sqlite3), Gemini API, Anthropic API
 
 ## Getting Started
 
@@ -42,6 +42,33 @@ cp .env.example .env
 npm install
 npx tsx src/index.ts
 ```
+
+## Usage Example
+
+```bash
+curl -X POST http://localhost:3000/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "apiKey": "test-key-123",
+    "messages": [{"role": "user", "content": "What is an AI agent in one sentence?"}]
+  }'
+```
+
+Response:
+
+```json
+{
+  "requestId": "4f5a3a36-0a0c-4a18-b880-59e5d3a56354",
+  "provider": "gemini",
+  "content": "An AI agent is an autonomous entity, typically a software program, that perceives its environment, makes decisions, and takes actions to achieve specific goals.",
+  "inputTokens": 12,
+  "outputTokens": 29,
+  "latencyMs": 5479,
+  "costUsd": 0.0096
+}
+```
+
+Every response includes provider used, token counts, latency, and cost — all tracked in SQLite per API key.
 
 ## Project Structure
 
