@@ -1,0 +1,21 @@
+flowchart TD
+    A["🔒 POST /v1/chat"] --> B["Auth Middleware"]
+    B --> C["Rate Limiter"]
+    C --> D["Gemini ①"]
+    D -- "✓ ok" --> R["💰 Cost Meter → SQLite"]
+    D -- "✗ fail" --> E["OpenAI ②"]
+    E -- "✓ ok" --> R
+    E -- "✗ fail" --> F["Anthropic ③"]
+    F -- "✓ ok" --> R
+    F -- "✗ fail" --> X["🚫 503 All providers failed"]
+    R --> K["📦 JSON Response"]
+
+    style A fill:#3b82f6,stroke:#2563eb,color:#fff
+    style B fill:#6366f1,stroke:#4f46e5,color:#fff
+    style C fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    style D fill:#10b981,stroke:#059669,color:#fff
+    style E fill:#f59e0b,stroke:#d97706,color:#fff
+    style F fill:#f97316,stroke:#ea580c,color:#fff
+    style R fill:#06b6d4,stroke:#0891b2,color:#fff
+    style K fill:#22c55e,stroke:#16a34a,color:#fff
+    style X fill:#ef4444,stroke:#dc2626,color:#fff
