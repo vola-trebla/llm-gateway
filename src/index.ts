@@ -1,3 +1,6 @@
+import { initObservability } from 'toad-eye';
+initObservability({ serviceName: 'llm-gateway' });
+
 import 'dotenv/config';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';

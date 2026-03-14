@@ -1,3 +1,5 @@
+import { traceLLMCall, type LLMCallInput } from 'toad-eye';
+import { calculateCost } from '../core/cost-meter.js';
 import type { ChatMessage, ProviderConfig } from '../types.js';
 
 /** Raw response from an LLM provider before gateway-level enrichment. */
@@ -35,8 +37,23 @@ export abstract class BaseProvider {
   /** Send messages to the provider. Wraps {@link execute} with latency tracking. */
   async call(messages: ChatMessage[]): Promise<ProviderResponse> {
     const start = Date.now();
-    const result = await this.execute(messages);
-    return { ...result, latencyMs: Date.now() - start };
+    const prompt = messages.map(m => m.content).join('\n');
+
+    const traced = await traceLLMCall(
+      { provider: this.name as LLMCallInput['provider'], model: this.config.model, prompt },
+      async () => {
+        const r = await this.execute(messages);
+        const cost = calculateCost(this.config, r.inputTokens, r.outputTokens);
+        return { completion: r.content, inputTokens: r.inputTokens, outputTokens: r.outputTokens, cost };
+      },
+    );
+
+    return {
+      content: traced.completion,
+      inputTokens: traced.inputTokens,
+      outputTokens: traced.outputTokens,
+      latencyMs: Date.now() - start,
+    };
   }
 
   /** Provider-specific API call. Implement this — do NOT measure latency here. */

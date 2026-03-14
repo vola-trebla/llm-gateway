@@ -57,9 +57,21 @@ Each provider only implements `execute()` — latency measurement, error handlin
 | **Auth Middleware** | `Authorization: Bearer <key>` validation on all `/v1/*` routes |
 | **Logger Middleware** | Structured JSON logging for every request (method, path, status, duration) |
 
+## Observability
+
+Uses [toad-eye](https://github.com/vola-trebla/toad-eye) via npm for OpenTelemetry-based observability — traces, metrics, and Grafana dashboards out of the box.
+
+```bash
+npx toad-eye init   # scaffold observability stack configs
+npx toad-eye up     # start Prometheus + Jaeger + Grafana + OTel Collector
+npx toad-eye down   # stop the stack
+```
+
+Every LLM call is automatically traced with provider, model, tokens, cost, and latency.
+
 ## Tech Stack
 
-TypeScript, Hono, SQLite (better-sqlite3), Gemini API, OpenAI API, Anthropic API
+TypeScript, Hono, SQLite (better-sqlite3), Gemini API, OpenAI API, Anthropic API, toad-eye
 
 ## Getting Started
 
